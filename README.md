@@ -1,42 +1,39 @@
-# Neo Stream
+# Neo Stream — Material 3 source player
 
-A lightweight, premium-feeling static video player shell for Cloudflare Pages.
+Cloudflare Pages-ready source project built around the `SyncPlayer.SyncPlayer` API shape from the supplied player implementation.
 
-## Structure
+## What is included
 
-- `index.html` — landing/source page + player mount
-- `css/player.css` — premium shell UI + player styles
-- `js/player.js` — resolver client, player controls, history, last-source restore
-- `functions/api/resolve.js` — generic Cloudflare Pages resolver for HTTP(S) JSON/direct-media/embed sources
-- `assets/` — lightweight SVG assets
+- Material 3 inspired dark UI with restrained surfaces, outlined source field and filled action button.
+- Custom `SyncPlayer` controls: play/pause, seek, volume, speed, quality, subtitles, PiP and fullscreen.
+- `/api/resolve` accepts direct media URLs, JSON endpoints, wrapped `url/source/src/stream` links, and accessible HTML embeds.
+- `/api/media` is a transparent range-aware fallback proxy for cross-origin media responses where direct playback fails because of response headers.
+- Last source is stored in browser storage as URL-safe base64; no signed `videoUrl` is treated as permanent storage.
+- Ad-block detection/overlay from the supplied player is not included.
+- Resolver and player fail fast instead of treating a metadata timeout as successful playback, which prevents the old `0:00` stuck state.
 
-## Supported input
+## Important media compatibility note
 
-- Direct media URLs supported by the browser
-- JSON endpoints containing `videoUrl`, `resolutions[]`, and/or `subtitleTracks[]`
-- Wrapped URLs using `url`, `source`, `src`, or `stream` query parameters
-- Generic iframe/embed sources discovered by the resolver
-- Share URLs such as `/?url=<encoded-source>`
+A web browser still needs to support the actual media container/codec. The player can proxy a stream to fix CORS/range/header problems, but a Cloudflare Pages Function cannot magically transcode an unsupported container such as an MKV into MP4. The player therefore reports a clear format error instead of displaying a fake `0:00` state.
 
-## Player
+## Deploy
 
-- Quality selection
-- Speed selection (0.5x–2x)
-- ±10 second seeking
-- WebVTT subtitles
-- Fullscreen
-- Picture-in-Picture when the browser allows it
-- Mobile controls
-- Loading / retry / decode-error UI
-- Encoded last-source persistence in `localStorage`
-- Recent source history
+Push the folder to GitHub and create a Cloudflare Pages project using the repository root as the build output directory. No build command is required.
 
-## Cloudflare Pages
+For local testing with Wrangler:
 
-Deploy the repository as a Pages project. The `/functions/api/resolve.js` function is used automatically by Cloudflare Pages Functions.
+```bash
+npx wrangler pages dev .
+```
 
-The resolver is intentionally generic. It does not contain site-specific selectors, ad/DRM bypasses, authentication bypasses, or protected-content workarounds.
+## Player API compatibility
 
-## Important browser limitation
+The generated `js/sync-player.umd.js` exposes:
 
-A browser cannot universally decode every container/codec (for example some MKV combinations), and CORS/DRM/authentication restrictions still apply to third-party resources. The UI reports these failures instead of hanging indefinitely.
+```js
+new SyncPlayer.SyncPlayer(element, { apiUrl, autoplay })
+SyncPlayer.fetchSource(apiUrl)
+SyncPlayer.normalizeSourcePayload(payload)
+```
+
+No ad-block probing or ad-block overlay is present.
