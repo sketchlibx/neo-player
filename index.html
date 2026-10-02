@@ -1,48 +1,95 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#08090c">
-  <meta name="description" content="Neo Stream Player">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07080c">
+  <meta name="description" content="Neo Stream — a fast, premium media player for direct media and JSON playback sources.">
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="preload" href="/css/player.css" as="style">
   <link rel="stylesheet" href="/css/player.css">
-  <title>Neo Stream Player</title>
+  <title>Neo Stream</title>
 </head>
 <body>
-  <main class="page-shell">
-    <section class="source-panel" aria-label="Video source">
-      <div class="source-row">
-        <label class="source-input-wrap">
-          <span class="source-icon" aria-hidden="true">↗</span>
-          <input id="sourceInput" type="url" inputmode="url" autocomplete="off" spellcheck="false"
-                 placeholder="Paste a direct video, JSON, player URL, or source-page URL…">
-        </label>
-        <button id="loadButton" class="load-btn" type="button">Load</button>
+  <div class="app-bg" aria-hidden="true"><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="grid-glow"></div></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Neo Stream home"><span class="brand-mark">N</span><span>NEO<span class="brand-soft">STREAM</span></span></a>
+      <div class="top-actions">
+        <button id="historyButton" class="ghost-btn" type="button" aria-label="Show recent sources"><span>History</span></button>
+        <a class="ghost-btn" href="#player">Player</a>
       </div>
-      <div id="sourceStatus" class="source-status" role="status" aria-live="polite"></div>
+    </header>
+
+    <section class="hero" aria-label="Source loader">
+      <div class="eyebrow"><span class="live-dot"></span> FAST · PRIVATE · MINIMAL</div>
+      <h1>Play a stream.<br><span>Without the clutter.</span></h1>
+      <p>Paste a direct media URL, JSON endpoint, wrapped player URL, or an embeddable source. Neo Stream resolves supported sources and hands them to the player.</p>
+
+      <div class="source-card">
+        <div class="source-main-row">
+          <div class="source-field">
+            <span class="source-field-icon">↗</span>
+            <input id="sourceInput" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a video / JSON / player / source URL…" aria-label="Source URL">
+            <button id="clearButton" class="inline-clear" type="button" aria-label="Clear URL" hidden>×</button>
+          </div>
+          <button id="loadButton" class="load-btn" type="button"><span class="load-label">Load</span><span class="load-arrow">→</span></button>
+        </div>
+        <div class="source-meta">
+          <span id="sourceStatus" role="status" aria-live="polite">Ready for a source.</span>
+          <button id="restoreButton" class="restore-btn" type="button" hidden>Restore last source</button>
+        </div>
+      </div>
+
+      <div class="quick-row" aria-label="Supported source types">
+        <span>Supports</span><i>Direct video</i><i>JSON</i><i>Wrapped URL</i><i>Embed</i>
+      </div>
     </section>
 
-    <section id="player" class="player-shell" aria-label="Video player"></section>
+    <section id="playerSection" class="player-section" aria-label="Video player">
+      <div class="section-heading"><div><span class="section-kicker">NOW PLAYING</span><h2>Neo Player</h2></div><span id="playerBadge" class="player-badge">Idle</span></div>
+      <div id="player" class="player-shell"></div>
+    </section>
+
+    <section class="feature-grid" aria-label="Features">
+      <article><span class="feature-icon">⚡</span><div><h3>Fast start</h3><p>Small static shell with deferred player work.</p></div></article>
+      <article><span class="feature-icon">◌</span><div><h3>Quality control</h3><p>Switch between available resolutions without rebuilding the page.</p></div></article>
+      <article><span class="feature-icon">CC</span><div><h3>Subtitles</h3><p>WebVTT subtitle tracks are detected and selectable.</p></div></article>
+      <article><span class="feature-icon">↺</span><div><h3>Resume</h3><p>Your last source is stored as an encoded browser value.</p></div></article>
+    </section>
+
+    <footer class="footer"><span>NEO STREAM</span><span>Static-first · Cloudflare Pages ready</span></footer>
   </main>
 
-  <script src="/js/player.js"></script>
-  <script>
-    window.NeoPlayerApp.init({
-      mount: document.getElementById('player'),
-      input: document.getElementById('sourceInput'),
-      loadButton: document.getElementById('loadButton'),
-      status: document.getElementById('sourceStatus'),
-      autoplay: true
-    });
+  <aside id="historyPanel" class="history-panel" aria-hidden="true">
+    <div class="history-backdrop" data-close-history></div>
+    <div class="history-drawer">
+      <div class="history-head"><div><span class="section-kicker">RECENT</span><h2>Sources</h2></div><button class="close-btn" id="closeHistory" type="button" aria-label="Close history">×</button></div>
+      <div id="historyList" class="history-list"></div>
+      <button id="clearHistory" class="danger-link" type="button">Clear history</button>
+    </div>
+  </aside>
 
-    const params = new URLSearchParams(location.search);
-    const initial = params.get('url') || params.get('source') || params.get('src');
-    if (initial) {
-      document.getElementById('sourceInput').value = initial;
-      document.getElementById('loadButton').click();
-    }
+  <script src="/js/player.js" defer></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.NeoPlayerApp.init({
+        mount: document.getElementById('player'),
+        input: document.getElementById('sourceInput'),
+        loadButton: document.getElementById('loadButton'),
+        clearButton: document.getElementById('clearButton'),
+        restoreButton: document.getElementById('restoreButton'),
+        status: document.getElementById('sourceStatus'),
+        badge: document.getElementById('playerBadge'),
+        historyButton: document.getElementById('historyButton'),
+        historyPanel: document.getElementById('historyPanel'),
+        historyList: document.getElementById('historyList'),
+        closeHistory: document.getElementById('closeHistory'),
+        clearHistory: document.getElementById('clearHistory'),
+        autoplay: true
+      });
+    });
   </script>
 </body>
 </html>
