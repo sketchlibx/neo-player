@@ -1,45 +1,26 @@
-# NeoStream Player
+# Neo Stream Player v2
 
-A fast, framework-free web video player designed for Cloudflare Pages.
+Cloudflare Pages-ready player project with a clean folder structure:
 
-## What it supports
+- `index.html` — player page only
+- `css/player.css` — player + page styles
+- `js/player.js` — player, source parsing, quality/subtitle/speed controls
+- `functions/api/resolve.js` — Cloudflare Pages Function for server-side source resolution
+- `assets/` — local SVG assets
 
-- Direct browser-playable video URLs (`.mp4`, `.webm`, `.m3u8`, `.mpd`, etc.)
-- JSON media endpoints with fields such as:
-  - `videoUrl`
-  - `resolutions[]` with `quality` + `url`
-  - `subtitleTracks[]` with `language`, `label`, `url`
-  - `defaultAudioLabel`
-- Iframe/embed URLs (shown inside an iframe)
-- Quality switching when the JSON provides multiple URLs
-- WebVTT subtitle tracks
-- 10-second back/forward buttons
-- Native browser fullscreen and Picture-in-Picture
-- Mobile responsive UI
-- Dark/light mode
-- No build step and no framework dependency
+## Supported input forms
 
-## JSON example
+1. Direct video/stream URL
+2. Direct JSON API URL returning `videoUrl` / `resolutions` / `subtitleTracks`
+3. Wrapper URL containing `?url=...`, `?source=...` or `?src=...`
+4. A source page that contains an embedded stream/player link
+5. A page with an iframe/embed source
 
-```json
-{
-  "videoUrl": "https://example.com/720p.mp4",
-  "resolutions": [
-    {"quality": "480p", "url": "https://example.com/480p.mp4"},
-    {"quality": "720p", "url": "https://example.com/720p.mp4"},
-    {"quality": "1080p", "url": "https://example.com/1080p.mp4"}
-  ],
-  "subtitleTracks": [
-    {"url": "https://example.com/en.vtt", "language": "eng", "label": "English"}
-  ],
-  "defaultAudioLabel": "Hindi"
-}
-```
+You can also share a player URL such as `/?url=<encoded-source>`.
 
-## Cloudflare Pages
 
-This is a static site. Upload/push the project as-is to a Cloudflare Pages project. No build command is required; the output directory is the project root.
+## Important
 
-## Important browser limitation
+The resolver does not bypass DRM, authentication, signed-URL expiry, hotlink protection, or CORS restrictions on the media itself. Use it with media and pages you are authorized to access.
 
-The frontend cannot bypass CORS, authentication, DRM, expired signed URLs, or an origin's iframe restrictions. For a remote JSON endpoint, the endpoint must allow browser CORS. A direct media URL must also be browser-playable and reachable. Iframe sources are embedded as provided; the embedded provider controls what the iframe can play.
+The browser's native `<video>` element must support the delivered codec/container. MKV playback is not universally supported by browsers.
